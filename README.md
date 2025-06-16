@@ -19,6 +19,22 @@ No-Contact Mode: Optionally computes the path with separated chains.
 Example
     python run_shortest_path.py ../ranked_1.pdb -10.87 2.89 -11.47 0 39 25 --output_dir prueba
 
+## Arguments
+Mandatory positional arguments:
+- `<input_pdb>`:  
+  Path to the input PDB file for which the surface and path will be calculated.
+- `<start_x> <start_y> <start_z>`:  
+  The X, Y, and Z coordinates of the starting point (in the same coordinate system as the PDB).
+- `<end_x> <end_y> <end_z>`:  
+  The X, Y, and Z coordinates of the ending point.
+  
+Optional Arguments
+* --output_dir: Directory to save outputs (default: output)
+* --max_distance: Maximum distance to connect nodes in the graph (default: 1.9)
+* --resolution: Grid resolution for sampling outside points (default: 1.0)
+* --just_dist: Only compute and save distances, skip visualization
+* --no_contacts: Use no-contact mode (separate chains)
+
 Optional Arguments
 * --output_dir: Directory to save outputs (default: output)
 * --max_distance: Maximum distance to connect nodes in the graph (default: 1.9)
