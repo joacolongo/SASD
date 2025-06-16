@@ -1,11 +1,10 @@
 import subprocess
-import numpy as np
-import os
 import plotly.graph_objects as go
-import trimesh
 from scipy.spatial import KDTree
 import heapq
-from itertools import combinations
+import os
+import numpy as np
+import trimesh
 
 def run_msms(input_pdb, output_dir=None):
     """
@@ -660,26 +659,28 @@ def write_pml_file(path_points, input_pdb, output_dir=None):
     with open(f'{output_dir}/SASD.pml', 'w') as pml_file:
         # Find the .cif file in output_dir (assuming there is only one)
         #cif_files = [f for f in os.listdir(output_dir) if f.endswith(".cif")]
-        cif_files = [f for f in os.listdir(output_dir) if f.endswith("ranked_1.pdb")] #for HDOCK
+        #cif_files = [f for f in os.listdir(output_dir) if f.endswith(".pdb")] #for HDOCK
 
 
         # Write the header to load the PDB model and set transparency/colors
         
         #pml_file.write(f"load ranked_1.cif\n")
-        pml_file.write(f"load {cif_files[0]}\n")
+        pml_file.write(f"load {input_pdb}\n")
 
         pml_file.write("set transparency, 0.5, All\n")
-        pml_file.write("color lightpink, chain A\n")
-        pml_file.write("color palecyan, chain B\n")
+        #pml_file.write("color lightpink, chain A\n")
+        #pml_file.write("color palecyan, chain B\n")
+        
         pml_file.write("hide everything, All\n")
         pml_file.write("show surface, All\n")
         pml_file.write("show wire, All\n")
+        pml_file.write('util.color_chains("(6r2g)",_self=cmd)\n')
         
         # Create pseudoatoms for each point in the path and show them as spheres
         for idx, point in enumerate(path_points):
             pml_file.write(f"pseudoatom {idx+1}, pos={point.tolist()}\n")
             pml_file.write(f"show spheres, {idx+1}\n")
-            pml_file.write(f"color green, {idx+1}\n")
+            pml_file.write(f"color pink, {idx+1}\n")
         
         # Calculate and display distances between all pseudoatoms
         for i in range(len(path_points)):

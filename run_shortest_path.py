@@ -1,13 +1,4 @@
-import subprocess
-import numpy as np
-import os
-import plotly.graph_objects as go
 import trimesh
-from scipy.spatial import KDTree
-import heapq
-from itertools import combinations
-
-
 import argparse
 from functions import *  # Import all functions from functions.py
 
@@ -174,15 +165,6 @@ if __name__ == "__main__":
         just_dist=args.just_dist
     )
 
+#Example usage:
+# python run_shortest_path.py inputs/6r2g.pdb  30.726  43.518  89.23  30.726  43.518  10 --output_dir prueba
 
-#main("../ranked_1.pdb", np.array([-10.87, 2.89, -11.47]), np.array([0, 39, 25]), output_dir='prueba')
-
-'''
-# Example with no contacts
-start_point = np.array([-13,30,13])  # Example start point
-end_point = np.array([-5,-52,-20])          # Example end point
-
-main_no_contacts(input_pdb="AF2_outputs/P0ABF6_P12758/ranked_1.pdb", output_dir='prueba',start_point=start_point, end_point=end_point)
-
-
-'''
