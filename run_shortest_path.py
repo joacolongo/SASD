@@ -1,3 +1,15 @@
+#!/bin/python3
+
+# ===================================================================================
+# Name.......: SASD - Shortest Accessible Surface Distance Calculator
+# Authors....: Joaquin Algorta
+# Contact....: joaquin.algorta@mpimp-golm.mpg.de
+# Description: A pipeline to compute the shortest accessible path between two points
+#              around a molecular surface, avoiding the mesh interior. Useful for
+#              analyzing protein-protein interfaces, ligand accessibility, and
+#              other structural biology applications.
+# ===================================================================================
+
 import trimesh
 import argparse
 from functions import *  # Import all functions from functions.py
