@@ -6,11 +6,17 @@ This tool computes the shortest accessible path between two points around a mole
 
 ## Features
 Surface Mesh Generation: Uses MSMS to generate a molecular surface mesh from a PDB file.
+
 Grid Sampling: Samples points outside the mesh to allow pathfinding around the surface.
+
 Shortest Path Calculation: Computes the shortest path between two user-defined points using A* search, avoiding the mesh interior.
+
 Path Refinement: Refines the path to minimize unnecessary detours.
+
 Visualization: Optionally visualizes the mesh, sampled points, and computed path (requires Plotly).
+
 PyMOL Export: Generates a PyMOL script to visualize the path and structure.
+
 No-Contact Mode: Optionally computes the path with separated chains.
 
 ## Usage 
