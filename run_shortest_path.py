@@ -7,6 +7,8 @@ from scipy.spatial import KDTree
 import heapq
 from itertools import combinations
 
+
+import argparse
 from functions import *  # Import all functions from functions.py
 
 
@@ -145,192 +147,35 @@ def main_no_contacts(input_pdb, start_point, end_point, max_distance=1.9, resolu
     return min_dist, euclidean_distance
 
 
-'''
-# Example usage
-input_pdb = "trimmed_AF2_outputs/P0A796_P0AB71/ranked_1.pdb"
-start_point = np.array([-10.87, 2.89, -11.47])  # Example start point
-end_point = np.array([0, 39, 25])          # Example end point
 
-main(input_pdb, start_point, end_point,output_dir='prueba',just_dist=True)
-
-'''
-'''
-import json
-
-# Define the directory
-directory = "../ProximityReactions/Ecoli/dock2_bueno/P00509_P00805"
-
-# Open and read the JSON file
-with open(os.path.join(directory, 'distances.json'), 'r') as f:
-    data = json.load(f)
-
-# Extract values for keys COM1 and COM2
-com1_value = data.get('COM1')
-com2_value = data.get('COM2')
-
-
-print(f"COM1: {com1_value}, COM2: {com2_value}")
-
-main(f"{directory}/model_1.pdb", com1_value, com2_value, output_dir='P00509_P00805')
-'''
-
-#### NEW ADJACENCY LIST WITH POINTS IN THE SURFACE THAT DO NOT GO INSIDE THE MESH
-def build_adjacency_list_visibility(vertices, mesh, num_samples=5):
-    """
-    Build an adjacency list for the mesh surface vertices.
-    Two points are connected only if the direct path between them does not enter the protein.
-
-    Parameters:
-        vertices (np.ndarray): Array of vertex coordinates (N, 3).
-        mesh (trimesh.Trimesh): The mesh object representing the protein surface.
-        num_samples (int): Number of intermediate points to sample along the path.
-
-    Returns:
-        dict: Adjacency list where each vertex index maps to a list of connected vertex indices.
-    """
-    adjacency_list = {i: [] for i in range(len(vertices))}
-
-    for i, j in combinations(range(len(vertices)), 2):
-        # Get the two points
-        point_A = vertices[i]
-        point_B = vertices[j]
-
-        # Generate evenly spaced points along the segment
-        segment_points = np.array([np.linspace(point_A[k], point_B[k], num_samples) for k in range(3)]).T
-
-        # Check if any point along the path lies inside the mesh
-        try:
-            inside_status = mesh.contains(segment_points)
-        except Exception as e:
-            print(f"Error in mesh.contains for pair ({i}, {j}): {e}")
-            continue
-
-        # If no points are inside the mesh, connect the vertices
-        if not any(inside_status):
-            adjacency_list[i].append(j)
-            adjacency_list[j].append(i)  # Ensure the graph is undirected
-
-    return adjacency_list
-
-def dijkstra_with_dynamic_graph(vertices, mesh, start, end, num_samples=5, distance_threshold=2.0):
-    # Initialize Dijkstra structures
-    queue = [(0, start)]  # (distance, vertex)
-    distances = {start: 0}
-    predecessors = {start: None}
-    visited = set()  # To avoid processing the same vertex multiple times
-
-    # Priority Queue for processing vertices
-    while queue:
-        current_dist, current_vertex = heapq.heappop(queue)
-
-        if current_vertex == end:
-            break
-
-        if current_vertex in visited:
-            continue
-        visited.add(current_vertex)
-
-        # For each vertex, dynamically build its neighbors on demand
-        point_A = vertices[current_vertex]
-        # Find nearby vertices within the threshold distance using KDTree (or any method)
-        for j, point_B in enumerate(vertices):
-            if j == current_vertex:
-                continue
-
-            distance = np.linalg.norm(point_A - point_B)
-
-            # Check if the distance is within the threshold
-            if distance <= distance_threshold:
-                # Generate points between the current vertex and the neighbor
-                segment_points = np.linspace(point_A, point_B, num_samples)
-
-                # Check if any point along the path is inside the mesh
-                inside_status = mesh.contains(segment_points)
-
-                # If no points are inside the mesh, consider this as a valid neighbor
-                if not any(inside_status):
-                    if j not in distances or current_dist + distance < distances[j]:
-                        distances[j] = current_dist + distance
-                        predecessors[j] = current_vertex
-                        heapq.heappush(queue, (distances[j], j))
-
-    # Reconstruct the shortest path
-    path = []
-    current_vertex = end
-    while current_vertex is not None:
-        path.append(current_vertex)
-        current_vertex = predecessors[current_vertex]
-    path.reverse()
-
-    return path, distances.get(end, float('inf'))  # Return path and the distance to the end node
-
-
-
-def main_visibility(input_pdb, start_point, end_point, max_distance=1.9, resolution=1, output_dir=None, just_dist=False):
-    # Step 1: Generate MSMS files
-    mesh = run_msms(input_pdb, output_dir)
-    print("Number of vertices:", mesh["num_vertexs"])
-    print("Number of triangles:", mesh["num_triangles"])
-    print("Number of spheres:", mesh["num_spheres"])
-
-    # Create the mesh using trimesh
-    vertices = np.array(mesh['vertices'])
-    faces = np.array(mesh['faces'])
-    your_mesh = trimesh.Trimesh(vertices=vertices, faces=faces)
-
-    print("Vertices shape:", vertices.shape)
-    print("Vertices sample:", vertices[:5])
-    print("Mesh bounds:", your_mesh.bounds)
-
-    # Step 3: Build adjacency list
-    adjacency_list = build_adjacency_list_visibility(vertices[:100], your_mesh, num_samples=5)
-    print(len(adjacency_list))
-    print(start_point, end_point)
-
-    # Find indices of start and end points
-    start_idx = np.argmin(np.linalg.norm(vertices - start_point, axis=1))
-    end_idx = np.argmin(np.linalg.norm(vertices - end_point, axis=1))
-
-    start_idx=1
-    end_idx=99
-
-    # Step 4: Find shortest path using Dijkstra's algorithm
-    path_indices = astar_shortest_path(start_idx, end_idx, adjacency_list, vertices)
-    shortest_path_points = vertices[path_indices]
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Compute shortest accessible path avoiding mesh interior.")
     
-    distance = calculate_path_distance(shortest_path_points)
-    print(f"Final distance: {distance}")
-
-    # save the final distance to a text file
-    with open(os.path.join(output_dir, 'SASD.txt'), 'w') as f:
-        f.write(str(distance)+'\n')
-
-    # Step 6: Visualize the results
-    if just_dist == False:
-        visualize_mesh_outside_points_results(vertices, your_mesh, shortest_path_points)
-
-    # Step 7: Write the PML file
-    write_pml_file(shortest_path_points, input_pdb, output_dir=output_dir)
-
-    if just_dist == True:
-        rm_cmd = f"rm -r {output_dir}"
-        subprocess.run(rm_cmd, shell=True, check=True)
-        
-    return distance
-
-'''
-# SUPER COMPUTATIONALLY EXPENSIVE
-# Example usage
-input_pdb = "AF2_outputs/A0A0H3JGH6_P00509/ranked_1.pdb"
-start_point = np.array([-10.87, 2.89, -11.47])  # Example start point
-end_point = np.array([0, 39, 25])          # Example end point
-
-main_visibility(input_pdb, start_point, end_point,output_dir='prueba')
-'''
+    parser.add_argument("input_pdb", type=str, help="Path to the input PDB file.")
+    parser.add_argument("start_point", type=float, nargs=3, help="Start point coordinates: x y z")
+    parser.add_argument("end_point", type=float, nargs=3, help="End point coordinates: x y z")
+    parser.add_argument("--output_dir", type=str, default="output", help="Directory to save outputs (default: 'output').")
+    parser.add_argument("--max_distance", type=float, default=1.9, help="Maximum distance to connect nodes (default: 1.9).")
+    parser.add_argument("--resolution", type=float, default=1.0, help="Grid resolution (default: 1.0).")
+    parser.add_argument("--just_dist", action="store_true", help="Only compute and save distances without visualization.")
+    parser.add_argument("--no_contacts", action="store_true", help="Use no-contact mode.")
 
 
+    args = parser.parse_args()
 
-main("../ranked_1.pdb", np.array([-10.87, 2.89, -11.47]), np.array([0, 39, 25]), output_dir='prueba')
+    # Run main function
+    min_dist, euclid = main(
+        input_pdb=args.input_pdb,
+        start_point=np.array(args.start_point),
+        end_point=np.array(args.end_point),
+        max_distance=args.max_distance,
+        resolution=args.resolution,
+        output_dir=args.output_dir,
+        just_dist=args.just_dist
+    )
+
+
+#main("../ranked_1.pdb", np.array([-10.87, 2.89, -11.47]), np.array([0, 39, 25]), output_dir='prueba')
 
 '''
 # Example with no contacts
