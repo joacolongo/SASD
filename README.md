@@ -58,4 +58,4 @@ Output
 * Python 3.x
 * trimesh
 * plotly (for visualization)
-* MSMS and pdb_to_xyzr binaries in your PATH
+* MSMS and pdb_to_xyzr binaries in your PATH - Check https://ccsb.scripps.edu/msms/downloads/ to download them.
