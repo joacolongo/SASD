@@ -2,6 +2,8 @@
 
     Joaquin Algorta - Max Planck Institute of Molecular Plant Physiology
 
+<img width="2303" height="669" alt="Screenshot from 2025-09-15 11-23-01" src="https://github.com/user-attachments/assets/3b13b445-1fb1-450c-b91e-16ae534e95bc" />
+
 This tool computes the shortest accessible path between two points around a molecular surface, avoiding the interior of the mesh. It is designed for structural biology applications, such as analyzing protein-protein interfaces or ligand accessibility.
 
 ## Features
