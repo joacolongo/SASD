@@ -667,15 +667,10 @@ def write_pml_file(path_points, input_pdb, output_dir=None):
     """
 
     with open(f'{output_dir}/SASD.pml', 'w') as pml_file:
-        # Find the .cif file in output_dir (assuming there is only one)
-        #cif_files = [f for f in os.listdir(output_dir) if f.endswith(".cif")]
-        #cif_files = [f for f in os.listdir(output_dir) if f.endswith(".pdb")] #for HDOCK
 
+        abs_path = os.path.abspath(input_pdb)
 
-        # Write the header to load the PDB model and set transparency/colors
-        
-        #pml_file.write(f"load ranked_1.cif\n")
-        pml_file.write(f"load {input_pdb}\n")
+        pml_file.write(f"load {abs_path}\n")
 
         pml_file.write("set transparency, 0.5, All\n")
         #pml_file.write("color lightpink, chain A\n")
@@ -684,7 +679,7 @@ def write_pml_file(path_points, input_pdb, output_dir=None):
         pml_file.write("hide everything, All\n")
         pml_file.write("show surface, All\n")
         pml_file.write("show wire, All\n")
-        pml_file.write('util.color_chains("(6r2g)",_self=cmd)\n')
+        pml_file.write('util.color_chains("All",_self=cmd)\n')
         
         # Create pseudoatoms for each point in the path and show them as spheres
         for idx, point in enumerate(path_points):

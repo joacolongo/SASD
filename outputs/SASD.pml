@@ -1,9 +1,9 @@
-load inputs/6r2g.pdb
+load /home/mpimp-golm.mpg.de/algorta3335/SASD/inputs/6r2g.pdb
 set transparency, 0.5, All
 hide everything, All
 show surface, All
 show wire, All
-util.color_chains("(6r2g)",_self=cmd)
+util.color_chains("All",_self=cmd)
 pseudoatom 1, pos=[32.146, 43.493, 90.937]
 show spheres, 1
 color pink, 1
