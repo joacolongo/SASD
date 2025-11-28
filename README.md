@@ -19,7 +19,7 @@ Visualization: Optionally visualizes the mesh, sampled points, and computed path
 
 PyMOL Export: Generates a PyMOL script to visualize the path and structure.
 
-No-Contact Mode: Optionally computes the path with separated chains.
+No-Contact Mode: It can also handle non interacting chains.
 
 ## Usage 
     python run_shortest_path.py <input_pdb> <start_x> <start_y> <start_z> <end_x> <end_y> <end_z> --output_dir <output_folder>
@@ -48,7 +48,6 @@ Optional Arguments
 * --max_distance: Maximum distance to connect nodes in the graph (default: 1.9)
 * --resolution: Grid resolution for sampling outside points (default: 1.0)
 * --just_dist: Only compute and save distances, skip visualization
-* --no_contacts: Use no-contact mode (separate chains)
 
 Output
 * SASD.txt: Shortest accessible surface distance
