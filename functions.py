@@ -19,10 +19,15 @@ def run_msms(input_pdb, output_dir=None):
         output_dir = pdb_code
     os.makedirs(output_dir, exist_ok=True)
 
+
+    xyzr_path = f"{output_dir}/{pdb_code}.xyzr"
+    vert_path = f"{output_dir}/{pdb_code}.vert"
+    face_path = f"{output_dir}/{pdb_code}.face"
+
     # Execute pdb_to_xyzr and msms
-    xyzr_cmd = f"pdb_to_xyzr {input_pdb} > {output_dir}/{pdb_code}.xyzr"
+    xyzr_cmd = f"pdb_to_xyzr {input_pdb} > {xyzr_path}"
     subprocess.run(xyzr_cmd, shell=True, check=True)
-    msms_cmd = f"msms -if {output_dir}/{pdb_code}.xyzr -of {output_dir}/{pdb_code} -probe_radius 1.4 -density 1"
+    msms_cmd = f"msms -if {xyzr_path} -of {output_dir}/{pdb_code} -probe_radius 1.4 -density 1"
     subprocess.run(msms_cmd, shell=True, check=True)
 
     """
@@ -54,6 +59,13 @@ def run_msms(input_pdb, output_dir=None):
                 num_triangles, num_spheres, triangulation_density, probe_sphere_radius = int(parts[0]), int(parts[1]), float(parts[2]), float(parts[3])
             if len(parts) > 4:
                 faces.append([int(parts[0]) - 1, int(parts[1]) - 1, int(parts[2]) - 1])  # Convert to 0-based
+
+    # Remove MSMS intermediate files
+    for path in [xyzr_path, vert_path, face_path]:
+        try:
+            os.remove(path)
+        except FileNotFoundError:
+            pass
 
     """
     Create a mesh representation using vertices and faces.

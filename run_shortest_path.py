@@ -183,5 +183,5 @@ if __name__ == "__main__":
         )
 
 #Example usage:
-# python run_shortest_path.py inputs/6r2g.pdb  30.726  43.518  90  30.726  43.518  10 --output_dir output
+# python run_shortest_path.py inputs/6r2g.pdb  30.726  43.518  90  30.726  43.518  10 --output_dir outputs
 
