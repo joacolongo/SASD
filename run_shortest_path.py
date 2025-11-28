@@ -167,17 +167,31 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    # Run main function
-    min_dist, euclid = main(
-        input_pdb=args.input_pdb,
-        start_point=np.array(args.start_point),
-        end_point=np.array(args.end_point),
-        max_distance=args.max_distance,
-        resolution=args.resolution,
-        output_dir=args.output_dir,
-        just_dist=args.just_dist
-    )
+    # Auto-detect based on chain contacts
+    use_main, num_chains = detect_chain_contacts(args.input_pdb)
+    
+    # Run the appropriate function
+    if use_main:
+        min_dist, euclid = main(
+            input_pdb=args.input_pdb,
+            start_point=np.array(args.start_point),
+            end_point=np.array(args.end_point),
+            max_distance=args.max_distance,
+            resolution=args.resolution,
+            output_dir=args.output_dir,
+            just_dist=args.just_dist
+        )
+    else:
+        min_dist, euclid = main_no_contacts(
+            input_pdb=args.input_pdb,
+            start_point=np.array(args.start_point),
+            end_point=np.array(args.end_point),
+            max_distance=args.max_distance,
+            resolution=args.resolution,
+            output_dir=args.output_dir,
+            just_dist=args.just_dist
+        )
 
 #Example usage:
-# python run_shortest_path.py inputs/6r2g.pdb  30.726  43.518  140  30.726  43.518  10 --output_dir prueba
+# python run_shortest_path.py inputs/6r2g.pdb  30.726  43.518  90  30.726  43.518  10 --output_dir output
 
