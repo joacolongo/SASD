@@ -65,8 +65,6 @@ def run_msms_separate_chains(input_pdb, output_dir=None):
     """
     Separates chains in a PDB file, runs MSMS for each chain, and combines the results into a single surface mesh.
     """
-    import os
-    import subprocess
 
     # Define output directory
     pdb_code = os.path.splitext(os.path.basename(input_pdb))[0]
@@ -695,3 +693,70 @@ def write_pml_file(path_points, input_pdb, output_dir=None):
 
         #pml_file.write(f"total green dist: {min_dist}")
     print(f"PML file {output_dir}/SASD.pml has been created.")
+
+
+def detect_chain_contacts(input_pdb, contact_distance=4.0):
+    """
+    Detect if chains in a PDB file are in contact (forming a complex) or separate.
+    
+    Parameters:
+        input_pdb (str): Path to the PDB file.
+        contact_distance (float): Distance threshold in Angstroms to consider chains in contact.
+    
+    Returns:
+        bool: True if chains are in contact (use main), False if separate (use main_no_contacts).
+        int: Number of chains detected.
+    """
+    # Parse PDB and organize atoms by chain
+    chains = {}
+    with open(input_pdb, 'r') as pdb_file:
+        for line in pdb_file:
+            if line.startswith("ATOM") or line.startswith("HETATM"):
+                chain_id = line[21]  # Chain ID at column 22 (0-based index 21)
+                # Extract coordinates
+                try:
+                    x = float(line[30:38].strip())
+                    y = float(line[38:46].strip())
+                    z = float(line[46:54].strip())
+                    
+                    if chain_id not in chains:
+                        chains[chain_id] = []
+                    chains[chain_id].append(np.array([x, y, z]))
+                except ValueError:
+                    continue
+    
+    # Convert to numpy arrays
+    for chain_id in chains:
+        chains[chain_id] = np.array(chains[chain_id])
+    
+    num_chains = len(chains)
+    
+    # If only one chain, it's a monomer - use main
+    if num_chains <= 1:
+        print(f"Detected {num_chains} chain(s). Using standard mode (main).")
+        return True, num_chains
+    
+    # If multiple chains, check for contacts
+    print(f"Detected {num_chains} chains. Checking for inter-chain contacts...")
+    
+    chain_ids = list(chains.keys())
+    for i in range(len(chain_ids)):
+        for j in range(i + 1, len(chain_ids)):
+            chain_a = chains[chain_ids[i]]
+            chain_b = chains[chain_ids[j]]
+            
+            # Build KDTree for chain B for efficient distance queries
+            kdtree = KDTree(chain_b)
+            
+            # Query distances from chain A to chain B
+            distances, _ = kdtree.query(chain_a)
+            min_distance = np.min(distances)
+            
+            if min_distance <= contact_distance:
+                print(f"Chains {chain_ids[i]} and {chain_ids[j]} are in contact (min distance: {min_distance:.2f} Å).")
+                print("Using standard mode (main) for complex structure.")
+                return True, num_chains
+    
+    print(f"No inter-chain contacts detected within {contact_distance} Å.")
+    print("Using no-contact mode (main_no_contacts) for separate chains.")
+    return False, num_chains
