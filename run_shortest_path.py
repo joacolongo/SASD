@@ -27,9 +27,11 @@ def main(input_pdb, start_point, end_point, max_distance=1.9, resolution=1, outp
     faces = np.array(mesh['faces'])
     your_mesh = trimesh.Trimesh(vertices=vertices, faces=faces)
 
-    # Step 2: Define grid parameters
-    min_bounds = vertices.min(axis=0) - 1
-    max_bounds = vertices.max(axis=0) + 1
+    # Step 2: Define grid parameters, considering start and end points
+    # Get bounds that include ALL mesh vertices, start point, and end point
+    all_points = np.vstack([vertices, start_point.reshape(1, -1), end_point.reshape(1, -1)])
+    min_bounds = all_points.min(axis=0) - 2  # Add 2 Å padding beyond everything
+    max_bounds = all_points.max(axis=0) + 2  # Add 2 Å padding beyond everything
 
     points_outside_mesh = generate_3d_grid_outside_mesh2(your_mesh, min_bounds, max_bounds, resolution)
     
@@ -177,5 +179,5 @@ if __name__ == "__main__":
     )
 
 #Example usage:
-# python run_shortest_path.py inputs/6r2g.pdb  30.726  43.518  89.23  30.726  43.518  10 --output_dir prueba
+# python run_shortest_path.py inputs/6r2g.pdb  30.726  43.518  140  30.726  43.518  10 --output_dir prueba
 
