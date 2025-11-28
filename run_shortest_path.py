@@ -59,7 +59,7 @@ def main(input_pdb, start_point, end_point, max_distance=1.9, resolution=1, outp
     refined_forward_path = refine_path_forward(shortest_path_points, your_mesh)
     refined_reverse_path = refine_path_reverse(refined_forward_path, your_mesh)
 
-    #refined_reverse_path = best_refine_path(refined_reverse_path, your_mesh) # ACTIVAR ESTO CUNADO QUERAMOS EL MEJOR CAMINO
+    #refined_reverse_path = best_refine_path(refined_reverse_path, your_mesh) # Refines all the posible points - very slow
 
     min_dist = calculate_path_distance(refined_reverse_path)
 
@@ -77,10 +77,6 @@ def main(input_pdb, start_point, end_point, max_distance=1.9, resolution=1, outp
 
     # Step 7: Write the PML file
     write_pml_file(refined_reverse_path, input_pdb, output_dir=output_dir)
-
-    #if just_dist==True:
-    #   rm_cmd = f"rm -r {output_dir}"
-    #   subprocess.run(rm_cmd, shell=True, check=True)
         
     return min_dist, euclidean_distance
 
@@ -125,7 +121,7 @@ def main_no_contacts(input_pdb, start_point, end_point, max_distance=1.9, resolu
     refined_forward_path = refine_path_forward(shortest_path_points, your_mesh)
     refined_reverse_path = refine_path_reverse(refined_forward_path, your_mesh)
 
-    #refined_reverse_path = best_refine_path(refined_reverse_path, your_mesh) # ACTIVAR ESTO CUNADO QUERAMOS EL MEJOR CAMINO
+    #refined_reverse_path = best_refine_path(refined_reverse_path, your_mesh)  # Refines all the posible points - very slow
 
     min_dist = calculate_path_distance(refined_reverse_path)
 
@@ -144,10 +140,6 @@ def main_no_contacts(input_pdb, start_point, end_point, max_distance=1.9, resolu
     # Step 7: Write the PML file
     write_pml_file(refined_reverse_path, input_pdb, output_dir=output_dir)
 
-    #if just_dist==True:
-    #   rm_cmd = f"rm -r {output_dir}"
-    #   subprocess.run(rm_cmd, shell=True, check=True)
-        
     return min_dist, euclidean_distance
 
 
@@ -162,8 +154,6 @@ if __name__ == "__main__":
     parser.add_argument("--max_distance", type=float, default=1.9, help="Maximum distance to connect nodes (default: 1.9).")
     parser.add_argument("--resolution", type=float, default=1.0, help="Grid resolution (default: 1.0).")
     parser.add_argument("--just_dist", action="store_true", help="Only compute and save distances without visualization.")
-    parser.add_argument("--no_contacts", action="store_true", help="Use no-contact mode.")
-
 
     args = parser.parse_args()
 
