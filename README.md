@@ -25,7 +25,8 @@ No-Contact Mode: It can also handle non interacting chains.
     python run_shortest_path.py <input_pdb> <start_x> <start_y> <start_z> <end_x> <end_y> <end_z> --output_dir <output_folder>
 
 Example
-    python run_shortest_path.py ../ranked_1.pdb -10.87 2.89 -11.47 0 39 25 --output_dir prueba
+
+    python run_shortest_path.py inputs/6r2g.pdb  30.726  43.518  90  30.726  43.518  10 --output_dir outputs
 
 ## Arguments
 Mandatory positional arguments:
