@@ -58,5 +58,6 @@ Output
 ## Requirements
 * Python 3.x
 * trimesh
+* rtree
 * plotly (for visualization)
 * MSMS and pdb_to_xyzr binaries in your PATH - Check https://ccsb.scripps.edu/msms/downloads/ to download them.
