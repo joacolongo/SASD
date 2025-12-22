@@ -6,6 +6,7 @@ import os
 import numpy as np
 import trimesh
 
+
 def run_msms(input_pdb, output_dir=None):
     """
     Runs MSMS to generate surface mesh.
@@ -14,11 +15,10 @@ def run_msms(input_pdb, output_dir=None):
         pdb_code = os.path.basename(input_pdb).rsplit('.', 1)[0]
     else:
         pdb_code = input_pdb.replace(".pdb", "")
-    
+
     if output_dir is None:
         output_dir = pdb_code
     os.makedirs(output_dir, exist_ok=True)
-
 
     xyzr_path = f"{output_dir}/{pdb_code}.xyzr"
     vert_path = f"{output_dir}/{pdb_code}.vert"
@@ -27,14 +27,14 @@ def run_msms(input_pdb, output_dir=None):
     # Execute pdb_to_xyzr and msms
     xyzr_cmd = f"pdb_to_xyzr {input_pdb} > {xyzr_path}"
     subprocess.run(xyzr_cmd, shell=True, check=True)
-    msms_cmd = f"msms -if {xyzr_path} -of {output_dir}/{pdb_code} -probe_radius 1.4 -density 1"
+    msms_cmd = f"msms.x86_64Linux2.2.6.1 -if {xyzr_path} -of {output_dir}/{pdb_code} -probe_radius 1.4 -density 1"
     subprocess.run(msms_cmd, shell=True, check=True)
 
     """
     Parse the .vert file to extract vertex coordinates.
     """
     vertices = []
-    num_vertexs, num_triangles, num_spheres, triangulation_density, probe_sphere_radius = None, None, None, None, None
+    num_vertexes, num_triangles, num_spheres, triangulation_density, probe_sphere_radius = None, None, None, None, None
 
     with open(f'{output_dir}/{pdb_code}.vert', 'r') as f:
         for line in f:
@@ -42,7 +42,8 @@ def run_msms(input_pdb, output_dir=None):
                 continue
             parts = line.split()
             if len(parts) == 4:
-                num_vertexs, num_spheres, triangulation_density, probe_sphere_radius = int(parts[0]), int(parts[1]), float(parts[2]), float(parts[3])
+                num_vertexes, num_spheres, triangulation_density, probe_sphere_radius = int(parts[0]), int(
+                    parts[1]), float(parts[2]), float(parts[3])
             if len(parts) > 4:
                 vertices.append([float(parts[0]), float(parts[1]), float(parts[2])])
 
@@ -56,7 +57,8 @@ def run_msms(input_pdb, output_dir=None):
                 continue
             parts = line.split()
             if len(parts) == 4:
-                num_triangles, num_spheres, triangulation_density, probe_sphere_radius = int(parts[0]), int(parts[1]), float(parts[2]), float(parts[3])
+                num_triangles, num_spheres, triangulation_density, probe_sphere_radius = int(parts[0]), int(
+                    parts[1]), float(parts[2]), float(parts[3])
             if len(parts) > 4:
                 faces.append([int(parts[0]) - 1, int(parts[1]) - 1, int(parts[2]) - 1])  # Convert to 0-based
 
@@ -70,7 +72,9 @@ def run_msms(input_pdb, output_dir=None):
     """
     Create a mesh representation using vertices and faces.
     """
-    return {"vertices": vertices, "faces": faces, "num_vertexs": num_vertexs, "num_triangles": num_triangles, "num_spheres": num_spheres, "triangulation_density": triangulation_density, "probe_sphere_radius": probe_sphere_radius}
+    return {"vertices": vertices, "faces": faces, "num_vertexes": num_vertexes, "num_triangles": num_triangles,
+            "num_spheres": num_spheres, "triangulation_density": triangulation_density,
+            "probe_sphere_radius": probe_sphere_radius}
 
 
 def run_msms_separate_chains(input_pdb, output_dir=None):
@@ -137,7 +141,8 @@ def run_msms_separate_chains(input_pdb, output_dir=None):
                     continue
                 parts = line.split()
                 if len(parts) == 4:  # Header information
-                    num_vertexs, num_spheres, triangulation_density, probe_sphere_radius = int(parts[0]), int(parts[1]), float(parts[2]), float(parts[3])
+                    num_vertexes, num_spheres, triangulation_density, probe_sphere_radius = int(parts[0]), int(
+                        parts[1]), float(parts[2]), float(parts[3])
                 elif len(parts) > 4:  # Vertex coordinates
                     combined_vertices.append([float(parts[0]), float(parts[1]), float(parts[2])])
 
@@ -148,14 +153,15 @@ def run_msms_separate_chains(input_pdb, output_dir=None):
                     continue
                 parts = line.split()
                 if len(parts) == 4:  # Header information
-                    num_triangles, num_spheres, triangulation_density, probe_sphere_radius = int(parts[0]), int(parts[1]), float(parts[2]), float(parts[3])
+                    num_triangles, num_spheres, triangulation_density, probe_sphere_radius = int(parts[0]), int(
+                        parts[1]), float(parts[2]), float(parts[3])
                 elif len(parts) > 4:  # Triangle indices
                     combined_faces.append([
                         int(parts[0]) - 1 + vertex_offset,
                         int(parts[1]) - 1 + vertex_offset,
                         int(parts[2]) - 1 + vertex_offset
                     ])
-        
+
         # Update vertex offset for the next chain
         vertex_offset = len(combined_vertices)
 
@@ -171,7 +177,7 @@ def run_msms_separate_chains(input_pdb, output_dir=None):
     return {
         "vertices": combined_vertices,
         "faces": combined_faces,
-        "num_vertexs": len(combined_vertices),
+        "num_vertexes": len(combined_vertices),
         "num_triangles": len(combined_faces),
     }
 
@@ -181,7 +187,7 @@ def generate_3d_grid_outside_mesh(mesh, min_bounds, max_bounds, resolution):
     x = np.arange(min_bounds[0], max_bounds[0], resolution)
     y = np.arange(min_bounds[1], max_bounds[1], resolution)
     z = np.arange(min_bounds[2], max_bounds[2], resolution)
-    
+
     # Prepare output container
     outside_points = []
 
@@ -204,6 +210,7 @@ def generate_3d_grid_outside_mesh(mesh, min_bounds, max_bounds, resolution):
                     outside_points.append(ray_origins[i])
 
     return np.array(outside_points)
+
 
 def generate_3d_grid_outside_mesh_optimized(mesh, min_bounds, max_bounds, resolution):
     x = np.arange(min_bounds[0], max_bounds[0], resolution)
@@ -274,6 +281,7 @@ def build_adjacency_list(combined_points, max_distance):
                 adjacency_list[i].append(neighbor)
     return adjacency_list
 
+
 def dijkstra_shortest_path(start_idx, end_idx, adjacency_list, combined_points):
     """
     Perform Dijkstra's algorithm to find the shortest path between two points in an adjacency list.
@@ -282,23 +290,23 @@ def dijkstra_shortest_path(start_idx, end_idx, adjacency_list, combined_points):
     distances = {i: float('inf') for i in adjacency_list}
     distances[start_idx] = 0
     predecessors = {i: None for i in adjacency_list}
-    
+
     # Priority queue for the nodes to visit
-    queue = [(0, start_idx)]  # (distance, node)
+    queue = [(0.0, start_idx)]  # (distance, node)
 
     while queue:
-        current_distance, current_node = heapq.heappop(queue)
+            current_distance, current_node = heapq.heappop(queue)
 
-        if current_node == end_idx:
-            break  # Exit when the end node is reached
+            if current_node == end_idx:
+                break  # Exit when the end node is reached
 
-        for neighbor in adjacency_list[current_node]:
-            # Calculate the distance to each neighbor
-            new_distance = current_distance + np.linalg.norm(combined_points[current_node] - combined_points[neighbor])
-            if new_distance < distances[neighbor]:
-                distances[neighbor] = new_distance
-                predecessors[neighbor] = current_node
-                heapq.heappush(queue, (new_distance, neighbor))
+            for neighbor in adjacency_list[current_node]:
+                # Calculate the distance to each neighbor
+                new_distance = float(current_distance + np.linalg.norm(combined_points[current_node] - combined_points[neighbor]))
+                if new_distance < distances[neighbor]:
+                    distances[neighbor] = new_distance
+                    predecessors[neighbor] = current_node
+                    heapq.heappush(queue, (new_distance, neighbor))
 
     # Reconstruct the shortest path
     path = []
@@ -306,7 +314,7 @@ def dijkstra_shortest_path(start_idx, end_idx, adjacency_list, combined_points):
     while current_node is not None:
         path.append(current_node)
         current_node = predecessors[current_node]
-    
+
     return path[::-1]  # Return reversed path
 
 
@@ -318,9 +326,9 @@ def astar_shortest_path(start_idx, end_idx, adjacency_list, combined_points):
     distances = {i: float('inf') for i in adjacency_list}  # Distance from start to node
     distances[start_idx] = 0
     predecessors = {i: None for i in adjacency_list}
-    
+
     # Priority queue with the heuristic included
-    queue = [(0, start_idx)]  # (f_score, node), where f_score = g_score + h_score
+    queue = [(0.0, start_idx)]  # (f_score, node), where f_score = g_score + h_score
 
     while queue:
         current_f_score, current_node = heapq.heappop(queue)
@@ -331,15 +339,16 @@ def astar_shortest_path(start_idx, end_idx, adjacency_list, combined_points):
 
         for neighbor in adjacency_list[current_node]:
             # Compute tentative g_score (distance from start to neighbor)
-            g_score = distances[current_node] + np.linalg.norm(combined_points[current_node] - combined_points[neighbor])
-            
+            g_score = float(distances[current_node] + np.linalg.norm(
+                combined_points[current_node] - combined_points[neighbor]))
+
             if g_score < distances[neighbor]:
                 distances[neighbor] = g_score
                 predecessors[neighbor] = current_node
-                
+
                 # f_score = g_score + h_score (heuristic: straight-line distance to end node)
                 h_score = np.linalg.norm(combined_points[neighbor] - combined_points[end_idx])
-                f_score = g_score + h_score
+                f_score = float(g_score + h_score)
                 heapq.heappush(queue, (f_score, neighbor))
 
     # Reconstruct the shortest path
@@ -348,7 +357,7 @@ def astar_shortest_path(start_idx, end_idx, adjacency_list, combined_points):
     while current_node is not None:
         path.append(current_node)
         current_node = predecessors[current_node]
-    
+
     return path[::-1]  # Return reversed path
 
 
@@ -366,7 +375,7 @@ def visualize_mesh_outside_points_results(points_outside_mesh, mesh, shortest_pa
         opacity=0.5,
         name='Mesh'
     )
-    
+
     # Outside Points Trace
     outside_trace = go.Scatter3d(
         x=points_outside_mesh[:, 0],
@@ -376,7 +385,7 @@ def visualize_mesh_outside_points_results(points_outside_mesh, mesh, shortest_pa
         marker=dict(size=2, color='red'),
         name='Points Outside Mesh'
     )
-    
+
     surface_trace = go.Scatter3d(
         x=mesh.vertices[:, 0],
         y=mesh.vertices[:, 1],
@@ -395,9 +404,9 @@ def visualize_mesh_outside_points_results(points_outside_mesh, mesh, shortest_pa
         line=dict(color='green', width=6),
         name='Shortest Path'
     )
-    
+
     fig = go.Figure(data=[mesh_trace, path_trace])
-    
+
     # Update Layout
     fig.update_layout(
         scene=dict(
@@ -407,7 +416,7 @@ def visualize_mesh_outside_points_results(points_outside_mesh, mesh, shortest_pa
         ),
         title=f"Shortest path between the 2 points"
     )
-    
+
     # Show the plot
     fig.show()
 
@@ -431,7 +440,7 @@ def refine_path_forward(path_points, mesh):
     """
     refined_path = [path_points[0]]  # Start with the first point
     intersector = trimesh.ray.ray_triangle.RayMeshIntersector(mesh)
-    
+
     i = 0
     while i < len(path_points) - 1:
         start_point = path_points[i]  # Current start point
@@ -440,7 +449,7 @@ def refine_path_forward(path_points, mesh):
         # Subdivide the ray segment to check points along the segment
         num_steps = 5  # Subdivision steps
         segment_points = np.linspace(start_point, end_point, num_steps)
-        
+
         # Check if all points along the segment lie inside the mesh
         inside_status = mesh.contains(segment_points)
 
@@ -480,6 +489,7 @@ def refine_path_forward(path_points, mesh):
 
     return np.array(refined_path)
 
+
 def refine_path_reverse(path_points, mesh):
     """
     Refine the path by eliminating unnecessary intermediate points if the direct line
@@ -487,7 +497,7 @@ def refine_path_reverse(path_points, mesh):
     """
     refined_path = [path_points[-1]]  # Start with the last point
     intersector = trimesh.ray.ray_triangle.RayMeshIntersector(mesh)
-    
+
     i = len(path_points) - 1
     while i > 0:
         start_point = path_points[0]  # Always check to the first point
@@ -496,7 +506,7 @@ def refine_path_reverse(path_points, mesh):
         # Subdivide the ray segment to check points along the segment
         num_steps = 5  # Subdivision steps
         segment_points = np.linspace(start_point, end_point, num_steps)
-        
+
         # Check if all points along the segment lie inside the mesh
         inside_status = mesh.contains(segment_points)
         if np.any(inside_status):  # Entire segment is inside the mesh
@@ -595,6 +605,7 @@ def refine_path_optimized(path_points, mesh, num_steps=10):
 
     return np.array(refined_path)
 
+
 def best_refine_path(path_points, mesh, num_steps=5):
     """
     SUPER SLOW, ONLY VALID FOR SHORT PATHS
@@ -658,7 +669,6 @@ def best_refine_path(path_points, mesh, num_steps=5):
     return np.array(refined_path)
 
 
-
 def write_pml_file(path_points, input_pdb, output_dir=None):
     """
     Write a PyMOL script to visualize the path points, color the atoms, and calculate distances
@@ -673,32 +683,32 @@ def write_pml_file(path_points, input_pdb, output_dir=None):
         pml_file.write(f"load {abs_path}\n")
 
         pml_file.write("set transparency, 0.5, All\n")
-        #pml_file.write("color lightpink, chain A\n")
-        #pml_file.write("color palecyan, chain B\n")
-        
+        # pml_file.write("color lightpink, chain A\n")
+        # pml_file.write("color palecyan, chain B\n")
+
         pml_file.write("hide everything, All\n")
         pml_file.write("show surface, All\n")
         pml_file.write("show wire, All\n")
         pml_file.write('util.color_chains("All",_self=cmd)\n')
-        
+
         # Create pseudoatoms for each point in the path and show them as spheres
         for idx, point in enumerate(path_points):
-            pml_file.write(f"pseudoatom {idx+1}, pos={point.tolist()}\n")
-            pml_file.write(f"show spheres, {idx+1}\n")
-            pml_file.write(f"color pink, {idx+1}\n")
-        
+            pml_file.write(f"pseudoatom {idx + 1}, pos={point.tolist()}\n")
+            pml_file.write(f"show spheres, {idx + 1}\n")
+            pml_file.write(f"color pink, {idx + 1}\n")
+
         # Calculate and display distances between all pseudoatoms
         for i in range(len(path_points)):
-            pml_file.write(f"distance {i}-{i+1}, {i}, {i+1}\n")
-            pml_file.write(f"color green, {i}-{i+1}\n")
-        
+            pml_file.write(f"distance {i}-{i + 1}, {i}, {i + 1}\n")
+            pml_file.write(f"color green, {i}-{i + 1}\n")
+
         # Add end of the script
         pml_file.write("\n")
-    
+
         pml_file.write(f"distance eucl,1,{len(path_points)}\n")
         pml_file.write("color red, eucl\n")
 
-        #pml_file.write(f"total green dist: {min_dist}")
+        # pml_file.write(f"total green dist: {min_dist}")
     print(f"PML file {output_dir}/SASD.pml has been created.")
 
 
@@ -725,45 +735,45 @@ def detect_chain_contacts(input_pdb, contact_distance=4.0):
                     x = float(line[30:38].strip())
                     y = float(line[38:46].strip())
                     z = float(line[46:54].strip())
-                    
+
                     if chain_id not in chains:
                         chains[chain_id] = []
                     chains[chain_id].append(np.array([x, y, z]))
                 except ValueError:
                     continue
-    
+
     # Convert to numpy arrays
     for chain_id in chains:
         chains[chain_id] = np.array(chains[chain_id])
-    
+
     num_chains = len(chains)
-    
+
     # If only one chain, it's a monomer - use main
     if num_chains <= 1:
         print(f"Detected {num_chains} chain(s). Using standard mode (main).")
         return True, num_chains
-    
+
     # If multiple chains, check for contacts
     print(f"Detected {num_chains} chains. Checking for inter-chain contacts...")
-    
+
     chain_ids = list(chains.keys())
     for i in range(len(chain_ids)):
         for j in range(i + 1, len(chain_ids)):
             chain_a = chains[chain_ids[i]]
             chain_b = chains[chain_ids[j]]
-            
+
             # Build KDTree for chain B for efficient distance queries
             kdtree = KDTree(chain_b)
-            
+
             # Query distances from chain A to chain B
             distances, _ = kdtree.query(chain_a)
             min_distance = np.min(distances)
-            
+
             if min_distance <= contact_distance:
                 print(f"Chains {chain_ids[i]} and {chain_ids[j]} are in contact (min distance: {min_distance:.2f} Å).")
                 print("Using standard mode (main) for complex structure.")
                 return True, num_chains
-    
+
     print(f"No inter-chain contacts detected within {contact_distance} Å.")
     print("Using no-contact mode (main_no_contacts) for separate chains.")
     return False, num_chains

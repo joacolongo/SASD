@@ -10,7 +10,6 @@
 #              other structural biology applications.
 # ===================================================================================
 
-import trimesh
 import argparse
 from functions import *  # Import all functions from functions.py
 
@@ -18,7 +17,7 @@ from functions import *  # Import all functions from functions.py
 def main(input_pdb, start_point, end_point, max_distance=1.9, resolution=1, output_dir=None, just_dist=False):
     # Step 1: Generate MSMS files
     mesh = run_msms(input_pdb, output_dir)
-    print("Number of vertices:", mesh["num_vertexs"])
+    print("Number of vertices:", mesh["num_vertexes"])
     print("Number of triangles:", mesh["num_triangles"])
     print("Number of spheres:", mesh["num_spheres"])
 
@@ -51,39 +50,39 @@ def main(input_pdb, start_point, end_point, max_distance=1.9, resolution=1, outp
 
     euclidean_distance = np.linalg.norm(combined_points[start_idx] - combined_points[end_idx])
 
-    # Step 4: Find shortest path using Dijkstra's algorithm
+    # Step 4: Find the shortest path using Dijkstra's algorithm
     path_indices = astar_shortest_path(start_idx, end_idx, adjacency_list, combined_points)
     shortest_path_points = combined_points[path_indices]
 
-    # Step 5, refine the path in the forward and reversedirection
+    # Step 5, refine the path in the forward and reverse direction
     refined_forward_path = refine_path_forward(shortest_path_points, your_mesh)
     refined_reverse_path = refine_path_reverse(refined_forward_path, your_mesh)
 
-    #refined_reverse_path = best_refine_path(refined_reverse_path, your_mesh) # Refines all the posible points - very slow
+    #refined_reverse_path = best_refine_path(refined_reverse_path, your_mesh) # Refines all the possible points - very slow
 
-    min_dist = calculate_path_distance(refined_reverse_path)
+    _min_dist = calculate_path_distance(refined_reverse_path)
 
-    print(f"Final distance: {min_dist}")
+    print(f"Final distance: {_min_dist}")
 
     # save the final distance to a text file
     with open(os.path.join(output_dir, 'SASD.txt'), 'w') as f:
-        f.write(str(min_dist)+'\n')
+        f.write(str(_min_dist) + '\n')
     with open(os.path.join(output_dir, 'euclid.txt'), 'w') as f:
         f.write(str(euclidean_distance)+'\n')
 
     # Step 6: Visualize the results
-    if just_dist==False:
+    if not just_dist:
         visualize_mesh_outside_points_results(points_outside_mesh, your_mesh, refined_reverse_path)
 
     # Step 7: Write the PML file
     write_pml_file(refined_reverse_path, input_pdb, output_dir=output_dir)
         
-    return min_dist, euclidean_distance
+    return _min_dist, euclidean_distance
 
 def main_no_contacts(input_pdb, start_point, end_point, max_distance=1.9, resolution=1, output_dir=None, just_dist=False):
     # Step 1: Generate MSMS files
     mesh = run_msms_separate_chains(input_pdb, output_dir)
-    print("Number of vertices:", mesh["num_vertexs"])
+    print("Number of vertices:", mesh["num_vertexes"])
     print("Number of triangles:", mesh["num_triangles"])
 
     # Create the mesh using trimesh
@@ -113,34 +112,34 @@ def main_no_contacts(input_pdb, start_point, end_point, max_distance=1.9, resolu
 
     euclidean_distance = np.linalg.norm(combined_points[start_idx] - combined_points[end_idx])
 
-    # Step 4: Find shortest path using Dijkstra's algorithm
+    # Step 4: Find the shortest path using Dijkstra's algorithm
     path_indices = astar_shortest_path(start_idx, end_idx, adjacency_list, combined_points)
     shortest_path_points = combined_points[path_indices]
 
-    # Step 5, refine the path in the forward and reversedirection
+    # Step 5, refine the path in the forward and reverse direction
     refined_forward_path = refine_path_forward(shortest_path_points, your_mesh)
     refined_reverse_path = refine_path_reverse(refined_forward_path, your_mesh)
 
-    #refined_reverse_path = best_refine_path(refined_reverse_path, your_mesh)  # Refines all the posible points - very slow
+    #refined_reverse_path = best_refine_path(refined_reverse_path, your_mesh)  # Refines all the possible points - very slow
 
-    min_dist = calculate_path_distance(refined_reverse_path)
+    _min_dist = calculate_path_distance(refined_reverse_path)
 
-    print(f"Final distance: {min_dist}")
+    print(f"Final distance: {_min_dist}")
 
     # save the final distance to a text file
     with open(os.path.join(output_dir, 'SASD.txt'), 'w') as f:
-        f.write(str(min_dist)+'\n')
+        f.write(str(_min_dist) + '\n')
     with open(os.path.join(output_dir, 'euclid.txt'), 'w') as f:
         f.write(str(euclidean_distance)+'\n')
 
     # Step 6: Visualize the results
-    if just_dist==False:
+    if not just_dist:
         visualize_mesh_outside_points_results(points_outside_mesh, your_mesh, refined_reverse_path)
 
     # Step 7: Write the PML file
     write_pml_file(refined_reverse_path, input_pdb, output_dir=output_dir)
 
-    return min_dist, euclidean_distance
+    return _min_dist, euclidean_distance
 
 
 
